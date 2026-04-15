@@ -10,7 +10,7 @@ on:
 
 jobs:
   build:
-    name: Build On macOS
+    name: Verify And Build On macOS
     runs-on: macos-latest
 
     steps:
@@ -19,19 +19,34 @@ jobs:
 
       - name: Select Latest Stable Xcode
         run: |
+          set -euo pipefail
           sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
           xcodebuild -version
 
+      - name: Verify Project Layout
+        run: |
+          set -euo pipefail
+          pwd
+          ls -la
+          test -d "./SubscriptionTracker.xcodeproj"
+          test -f "./SubscriptionTracker.xcodeproj/project.pbxproj"
+          test -f "./SubscriptionTracker.xcodeproj/xcshareddata/xcschemes/SubscriptionTracker.xcscheme"
+
       - name: Show Schemes
-        run: xcodebuild -list -project SubscriptionTracker.xcodeproj
+        run: |
+          set -euo pipefail
+          xcodebuild -list -project "./SubscriptionTracker.xcodeproj"
 
       - name: Build iOS App For Simulator
         run: |
+          set -euo pipefail
           xcodebuild \
-            -project SubscriptionTracker.xcodeproj \
-            -scheme SubscriptionTracker \
+            -project "./SubscriptionTracker.xcodeproj" \
+            -scheme "SubscriptionTracker" \
             -configuration Debug \
             -sdk iphonesimulator \
-            -destination 'generic/platform=iOS Simulator' \
+            -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' \
             CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
             build

@@ -19,6 +19,7 @@ Package.resolved
 
 # macOS
 .DS_Store
+pairingFile.plist
 
 # Editors
 .vscode/

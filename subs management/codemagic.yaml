@@ -1,0 +1,43 @@
+workflows:
+  ios-build:
+    name: SubscriptionTracker iOS Build
+    max_build_duration: 120
+    instance_type: mac_mini_m2
+    environment:
+      xcode: latest
+      vars:
+        XCODE_PROJECT: 'SubscriptionTracker.xcodeproj'
+        XCODE_SCHEME: "SubscriptionTracker"
+    scripts:
+      - name: Verify Project Layout
+        script: |
+          set -euo pipefail
+          PROJECT_PATH="$CM_BUILD_DIR/$XCODE_PROJECT"
+          echo "CM_BUILD_DIR: $CM_BUILD_DIR"
+          cd "$CM_BUILD_DIR"
+          pwd
+          ls -la
+          test -d "$PROJECT_PATH"
+          test -f "$PROJECT_PATH/project.pbxproj"
+          test -f "$PROJECT_PATH/xcshareddata/xcschemes/SubscriptionTracker.xcscheme"
+          xcodebuild -list -project "$PROJECT_PATH"
+
+      - name: Build iOS app for Simulator
+        script: |
+          set -euo pipefail
+          PROJECT_PATH="$CM_BUILD_DIR/$XCODE_PROJECT"
+          cd "$CM_BUILD_DIR"
+          xcodebuild build \
+            -project "$PROJECT_PATH" \
+            -scheme "$XCODE_SCHEME" \
+            -configuration Debug \
+            -sdk iphonesimulator \
+            -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY=""
+
+    artifacts:
+      - /tmp/xcodebuild_logs/*.log
+      - $HOME/Library/Developer/Xcode/DerivedData/**/Build/**/*.app
+      - $HOME/Library/Developer/Xcode/DerivedData/**/Build/**/*.dSYM
